@@ -8,19 +8,51 @@
   </head>
   <body>
     <div id="hud">
-      <div id="title">Arena FPS</div>
-      <div id="stats">
-        <div class="bar-wrap">
-          <span>You</span>
-          <div class="bar"><div id="player-hp" class="fill player"></div></div>
+      <div id="hud-top">
+        <div id="title">Arena FPS</div>
+        <div id="stats">
+          <div class="bar-wrap">
+            <span>You</span>
+            <span id="player-hp-num" class="hp-num">100</span>
+            <div class="bar"><div id="player-hp" class="fill player"></div></div>
+          </div>
+          <div class="bar-wrap">
+            <span>CPU</span>
+            <span id="enemy-hp-num" class="hp-num">100</span>
+            <div class="bar"><div id="enemy-hp" class="fill enemy"></div></div>
+          </div>
         </div>
-        <div class="bar-wrap">
-          <span>CPU</span>
-          <div class="bar"><div id="enemy-hp" class="fill enemy"></div></div>
+        <div id="hud-meta">
+          <div id="hud-timer" class="hud-pill" aria-live="polite">0:00</div>
+          <div id="hud-difficulty" class="hud-pill difficulty">Medium</div>
         </div>
       </div>
       <div id="help">
         <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>←</kbd><kbd>→</kbd> turn · <kbd>Space</kbd> shoot
+      </div>
+      <div id="hud-bottom">
+        <div class="hud-weapon">
+          <span class="weapon-name">Pulse carbine</span>
+          <span class="weapon-ammo">∞</span>
+        </div>
+        <div class="hud-compass-wrap">
+          <div
+            id="hud-compass"
+            class="hud-compass"
+            role="img"
+            aria-label="CPU direction relative to facing"
+          >
+            <div class="compass-ring">
+              <span class="compass-f" aria-hidden="true">F</span>
+              <span class="compass-b" aria-hidden="true">B</span>
+              <div id="compass-rot" class="compass-rot">
+                <div class="compass-cpu" aria-hidden="true"></div>
+              </div>
+            </div>
+            <span class="compass-caption">CPU</span>
+          </div>
+        </div>
+        <div id="hud-range" class="hud-range" aria-live="polite">CPU — — m</div>
       </div>
     </div>
     <div id="crosshair"></div>
@@ -28,6 +60,12 @@
       <div class="panel">
         <h1>Arena FPS</h1>
         <p>First-person arena duel versus one CPU opponent.</p>
+        <label class="difficulty-label" for="difficulty-start">Difficulty</label>
+        <select id="difficulty-start" class="difficulty-select" aria-label="Difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
         <button type="button" id="start-btn">Click to play</button>
         <p class="hint">Arrow keys move and turn. Space fires. Cursor locks for smooth play.</p>
       </div>
@@ -36,6 +74,12 @@
       <div class="panel">
         <h1 id="end-title">You win</h1>
         <p id="end-msg"></p>
+        <label class="difficulty-label" for="difficulty-end">Difficulty</label>
+        <select id="difficulty-end" class="difficulty-select" aria-label="Difficulty for next round">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
         <button type="button" id="restart-btn">Play again</button>
       </div>
     </div>

@@ -23,17 +23,22 @@ body {
 
 #hud {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 1rem 1.25rem;
+  inset: 0;
+  padding: 1rem 1.25rem 5.5rem;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
   pointer-events: none;
   z-index: 2;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+#hud-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 1.25rem;
 }
 
 #title {
@@ -41,6 +46,7 @@ body {
   letter-spacing: 0.06em;
   font-size: 0.85rem;
   opacity: 0.9;
+  flex-shrink: 0;
 }
 
 #stats {
@@ -48,16 +54,65 @@ body {
   gap: 1.25rem;
   flex: 1;
   min-width: 200px;
+  align-items: center;
+}
+
+#hud-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.hud-pill {
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#hud-timer {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2rem;
+  text-align: center;
+}
+
+#hud-difficulty.difficulty-easy {
+  color: #7dffb0;
+  border-color: rgba(125, 255, 176, 0.35);
+}
+
+#hud-difficulty.difficulty-medium {
+  color: #ffd28a;
+  border-color: rgba(255, 210, 138, 0.35);
+}
+
+#hud-difficulty.difficulty-hard {
+  color: #ff8a8a;
+  border-color: rgba(255, 138, 138, 0.4);
 }
 
 .bar-wrap {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.85;
+}
+
+.hp-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5rem;
+  text-align: right;
+  opacity: 0.95;
 }
 
 .bar {
@@ -88,6 +143,127 @@ body {
   opacity: 0.65;
 }
 
+#hud-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 1.25rem 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: linear-gradient(to top, rgba(5, 8, 14, 0.75), transparent);
+  pointer-events: none;
+}
+
+.hud-compass-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.hud-compass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.compass-caption {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.compass-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: radial-gradient(circle at 50% 35%, rgba(40, 50, 72, 0.5), rgba(8, 10, 16, 0.85));
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+}
+
+.compass-f {
+  position: absolute;
+  left: 50%;
+  top: 5px;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(110, 224, 255, 0.95);
+  text-shadow: 0 0 8px rgba(110, 224, 255, 0.35);
+}
+
+.compass-b {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  font-size: 0.5rem;
+  font-weight: 700;
+  opacity: 0.35;
+}
+
+.compass-rot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform-origin: 50% 50%;
+  transition: transform 0.08s ease-out, opacity 0.15s ease;
+}
+
+.compass-cpu {
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: linear-gradient(145deg, #ff8a8a, #e04040);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 90, 90, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.hud-weapon {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.weapon-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.88;
+}
+
+.weapon-ammo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #6ee0ff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(110, 224, 255, 0.35);
+}
+
+.hud-range {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
 kbd {
   display: inline-block;
   padding: 0.12rem 0.35rem;
@@ -115,6 +291,21 @@ kbd {
 
 #crosshair.active {
   opacity: 1;
+}
+
+#crosshair.hit-deal {
+  border-color: rgba(80, 255, 210, 0.95);
+  box-shadow: 0 0 16px rgba(80, 255, 210, 0.55);
+}
+
+#crosshair.hit-take {
+  border-color: rgba(255, 100, 70, 0.95);
+  box-shadow: 0 0 18px rgba(255, 80, 60, 0.6);
+}
+
+#crosshair.hit-deal,
+#crosshair.hit-take {
+  transition: border-color 0.05s, box-shadow 0.05s;
 }
 
 #overlay,
@@ -166,6 +357,34 @@ kbd {
   font-size: 0.75rem !important;
   opacity: 0.6 !important;
   margin-top: 1rem !important;
+}
+
+.difficulty-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+  margin-bottom: 0.35rem;
+}
+
+.difficulty-select {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 1rem;
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #e8eaef;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.difficulty-select:focus {
+  outline: 2px solid rgba(42, 140, 255, 0.55);
+  outline-offset: 2px;
 }
 
 button {

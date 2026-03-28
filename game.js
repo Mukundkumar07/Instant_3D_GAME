@@ -9,9 +9,46 @@ const TURN_SPEED = 2.4;
 const PROJ_SPEED = 95;
 const PROJ_RADIUS = 0.22;
 const MAX_HP = 100;
-const ENEMY_MOVE_SPEED = 9;
-const ENEMY_SHOOT_COOLDOWN = 0.85;
-const ENEMY_SHOOT_RANGE = 38;
+
+/** @type {Record<string, { label: string; enemyMoveSpeed: number; enemyShootCooldown: number; enemyShootRange: number; enemyDamage: number; enemyTurnRate: number; aimJitter: number; damageToEnemy: number; retreatDist: number; chaseDist: number }>} */
+const DIFFICULTY = {
+  easy: {
+    label: "Easy",
+    enemyMoveSpeed: 6,
+    enemyShootCooldown: 1.25,
+    enemyShootRange: 28,
+    enemyDamage: 11,
+    enemyTurnRate: 5,
+    aimJitter: 0.16,
+    damageToEnemy: 26,
+    retreatDist: 8,
+    chaseDist: 14,
+  },
+  medium: {
+    label: "Medium",
+    enemyMoveSpeed: 9,
+    enemyShootCooldown: 0.85,
+    enemyShootRange: 38,
+    enemyDamage: 18,
+    enemyTurnRate: 7,
+    aimJitter: 0.045,
+    damageToEnemy: 22,
+    retreatDist: 9,
+    chaseDist: 16,
+  },
+  hard: {
+    label: "Hard",
+    enemyMoveSpeed: 12.5,
+    enemyShootCooldown: 0.48,
+    enemyShootRange: 46,
+    enemyDamage: 28,
+    enemyTurnRate: 11,
+    aimJitter: 0.01,
+    damageToEnemy: 18,
+    retreatDist: 10,
+    chaseDist: 18,
+  },
+};
 
 const canvas = document.getElementById("game");
 const overlay = document.getElementById("overlay");
@@ -21,8 +58,77 @@ const restartBtn = document.getElementById("restart-btn");
 const crosshair = document.getElementById("crosshair");
 const playerHpEl = document.getElementById("player-hp");
 const enemyHpEl = document.getElementById("enemy-hp");
+const playerHpNum = document.getElementById("player-hp-num");
+const enemyHpNum = document.getElementById("enemy-hp-num");
+const hudTimer = document.getElementById("hud-timer");
+const hudDifficulty = document.getElementById("hud-difficulty");
+const hudRange = document.getElementById("hud-range");
+const compassRot = document.getElementById("compass-rot");
+const difficultyStart = document.getElementById("difficulty-start");
+const difficultyEnd = document.getElementById("difficulty-end");
 const endTitle = document.getElementById("end-title");
 const endMsg = document.getElementById("end-msg");
+
+let matchStartMs = 0;
+let currentDifficultyKey = "medium";
+let hitFlashTimeout = 0;
+
+function getDifficultyParams() {
+  return DIFFICULTY[currentDifficultyKey] ?? DIFFICULTY.medium;
+}
+
+function syncDifficultySelects() {
+  difficultyStart.value = currentDifficultyKey;
+  difficultyEnd.value = currentDifficultyKey;
+}
+
+difficultyStart.addEventListener("change", () => {
+  currentDifficultyKey = difficultyStart.value;
+  syncDifficultySelects();
+});
+difficultyEnd.addEventListener("change", () => {
+  currentDifficultyKey = difficultyEnd.value;
+  syncDifficultySelects();
+});
+
+function formatMatchTime(sec) {
+  const s = Math.floor(sec % 60);
+  const m = Math.floor(sec / 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function updateDifficultyHud() {
+  const p = getDifficultyParams();
+  hudDifficulty.textContent = p.label;
+  hudDifficulty.classList.remove("difficulty-easy", "difficulty-medium", "difficulty-hard");
+  hudDifficulty.classList.add(`difficulty-${currentDifficultyKey}`);
+}
+
+function flashHitMarker(kind) {
+  crosshair.classList.remove("hit-deal", "hit-take");
+  crosshair.classList.add(kind === "deal" ? "hit-deal" : "hit-take");
+  clearTimeout(hitFlashTimeout);
+  hitFlashTimeout = setTimeout(() => {
+    crosshair.classList.remove("hit-deal", "hit-take");
+  }, 95);
+}
+
+function updateHudExtras() {
+  if (!gameActive) return;
+  const elapsed = (performance.now() - matchStartMs) / 1000;
+  hudTimer.textContent = formatMatchTime(elapsed);
+
+  const ex = enemy.pos.x - playerPos.x;
+  const ez = enemy.pos.z - playerPos.z;
+  const dist = Math.sqrt(ex * ex + ez * ez);
+  hudRange.textContent = `CPU ${Math.round(dist)} m`;
+
+  let rel = Math.atan2(ex, ez) - yaw;
+  while (rel > Math.PI) rel -= Math.PI * 2;
+  while (rel < -Math.PI) rel += Math.PI * 2;
+  compassRot.style.transform = `rotate(${(rel * 180) / Math.PI}deg)`;
+  compassRot.style.opacity = dist < 0.85 ? "0.2" : "1";
+}
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0c0e14);
@@ -191,6 +297,8 @@ function updateHpBars() {
   const ef = enemyHp / MAX_HP;
   playerHpEl.style.transform = `scaleX(${Math.max(0, pf)})`;
   enemyHpEl.style.transform = `scaleX(${Math.max(0, ef)})`;
+  playerHpNum.textContent = String(Math.max(0, Math.round(playerHp)));
+  enemyHpNum.textContent = String(Math.max(0, Math.round(enemyHp)));
 }
 
 function resetGame() {
@@ -202,6 +310,13 @@ function resetGame() {
   enemy.yaw = 0;
   enemy.mesh.position.set(enemy.pos.x, enemy.pos.y, enemy.pos.z);
   enemyShootTimer = 0;
+  matchStartMs = performance.now();
+  hudTimer.textContent = "0:00";
+  hudRange.textContent = "CPU — m";
+  compassRot.style.transform = "rotate(0deg)";
+  compassRot.style.opacity = "1";
+  crosshair.classList.remove("hit-deal", "hit-take");
+  clearTimeout(hitFlashTimeout);
   for (const p of projectiles) {
     scene.remove(p.mesh);
     p.mesh.geometry.dispose();
@@ -209,30 +324,38 @@ function resetGame() {
   }
   projectiles.length = 0;
   updateHpBars();
+  updateDifficultyHud();
 }
 
 function endGame(won) {
   gameActive = false;
   document.exitPointerLock?.();
-  crosshair.classList.remove("active");
+  crosshair.classList.remove("active", "hit-deal", "hit-take");
+  clearTimeout(hitFlashTimeout);
   endTitle.textContent = won ? "You win" : "You lose";
+  const diffLabel = getDifficultyParams().label;
   endMsg.textContent = won
-    ? "You eliminated the CPU opponent."
-    : "The CPU won this round.";
+    ? `You eliminated the CPU on ${diffLabel}.`
+    : `The CPU won on ${diffLabel}.`;
+  syncDifficultySelects();
   endScreen.classList.remove("hidden");
 }
 
 function tryHitPlayer() {
   if (!gameActive) return;
-  playerHp = Math.max(0, playerHp - 18);
+  const dmg = getDifficultyParams().enemyDamage;
+  playerHp = Math.max(0, playerHp - dmg);
   updateHpBars();
+  flashHitMarker("take");
   if (playerHp <= 0) endGame(false);
 }
 
 function tryHitEnemy() {
   if (!gameActive) return;
-  enemyHp = Math.max(0, enemyHp - 22);
+  const dmg = getDifficultyParams().damageToEnemy;
+  enemyHp = Math.max(0, enemyHp - dmg);
   updateHpBars();
+  flashHitMarker("deal");
   if (enemyHp <= 0) endGame(true);
 }
 
@@ -248,6 +371,7 @@ function shortestAngleDiff(from, to) {
 }
 
 function updateEnemy(dt) {
+  const params = getDifficultyParams();
   const toP = new THREE.Vector3(
     playerPos.x - enemy.pos.x,
     0,
@@ -257,14 +381,15 @@ function updateEnemy(dt) {
   if (dist > 0.01) toP.multiplyScalar(1 / dist);
 
   const wantYaw = Math.atan2(toP.x, toP.z);
-  enemy.yaw += shortestAngleDiff(enemy.yaw, wantYaw) * Math.min(1, 7 * dt);
+  enemy.yaw +=
+    shortestAngleDiff(enemy.yaw, wantYaw) * Math.min(1, params.enemyTurnRate * dt);
 
   let move = toP.clone();
-  if (dist < 9) move.multiplyScalar(-0.65);
-  else if (dist > 16) move.multiplyScalar(1);
+  if (dist < params.retreatDist) move.multiplyScalar(-0.65);
+  else if (dist > params.chaseDist) move.multiplyScalar(1);
   else move.multiplyScalar(0.35);
 
-  const step = move.multiplyScalar(ENEMY_MOVE_SPEED * dt);
+  const step = move.multiplyScalar(params.enemyMoveSpeed * dt);
   const nx = enemy.pos.x + step.x;
   const nz = enemy.pos.z + step.z;
   const c = clampToArena(nx, nz, ENEMY_R);
@@ -274,19 +399,24 @@ function updateEnemy(dt) {
   enemy.mesh.rotation.y = enemy.yaw;
 
   enemyShootTimer -= dt;
-  if (enemyShootTimer <= 0 && dist < ENEMY_SHOOT_RANGE && dist > 2) {
+  if (enemyShootTimer <= 0 && dist < params.enemyShootRange && dist > 2) {
     const aim = new THREE.Vector3(
       playerPos.x - enemy.pos.x,
       1.25,
       playerPos.z - enemy.pos.z
-    ).normalize();
+    );
+    const j = params.aimJitter;
+    aim.x += (Math.random() - 0.5) * 2 * j;
+    aim.y += (Math.random() - 0.5) * j;
+    aim.z += (Math.random() - 0.5) * 2 * j;
+    aim.normalize();
     const origin = new THREE.Vector3(
       enemy.pos.x + Math.sin(enemy.yaw) * ENEMY_R,
       1.25,
       enemy.pos.z + Math.cos(enemy.yaw) * ENEMY_R
     );
     spawnProjectile(origin, aim, "enemy");
-    enemyShootTimer = ENEMY_SHOOT_COOLDOWN;
+    enemyShootTimer = params.enemyShootCooldown;
   }
 }
 
@@ -375,6 +505,7 @@ function tick() {
     updatePlayer(dt);
     updateEnemy(dt);
     updateProjectiles(dt);
+    updateHudExtras();
   }
   renderer.render(scene, camera);
 }
@@ -409,6 +540,8 @@ function startPlaying() {
   overlay.classList.remove("visible");
   overlay.classList.add("hidden");
   endScreen.classList.add("hidden");
+  currentDifficultyKey = difficultyStart.value;
+  syncDifficultySelects();
   resetGame();
   gameActive = true;
   crosshair.classList.add("active");
@@ -428,5 +561,8 @@ document.addEventListener("pointerlockchange", () => {
   }
 });
 
+currentDifficultyKey = difficultyStart.value;
+syncDifficultySelects();
+updateDifficultyHud();
 updateHpBars();
 tick();
