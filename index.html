@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arena FPS — vs CPU</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="hud">
+      <div id="title">Arena FPS</div>
+      <div id="stats">
+        <div class="bar-wrap">
+          <span>You</span>
+          <div class="bar"><div id="player-hp" class="fill player"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <span>CPU</span>
+          <div class="bar"><div id="enemy-hp" class="fill enemy"></div></div>
+        </div>
+      </div>
+      <div id="help">
+        <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>←</kbd><kbd>→</kbd> turn · <kbd>Space</kbd> shoot
+      </div>
+    </div>
+    <div id="crosshair"></div>
+    <div id="overlay" class="visible">
+      <div class="panel">
+        <h1>Arena FPS</h1>
+        <p>First-person arena duel versus one CPU opponent.</p>
+        <button type="button" id="start-btn">Click to play</button>
+        <p class="hint">Arrow keys move and turn. Space fires. Cursor locks for smooth play.</p>
+      </div>
+    </div>
+    <div id="end-screen" class="hidden">
+      <div class="panel">
+        <h1 id="end-title">You win</h1>
+        <p id="end-msg"></p>
+        <button type="button" id="restart-btn">Play again</button>
+      </div>
+    </div>
+    <canvas id="game"></canvas>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.170.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
