@@ -1,6 +1,66 @@
 # Arena FPS (3D)
 
-A browser-based **first-person arena shooter** against one CPU opponent. Built with [Three.js](https://threejs.org/) (no build step).
+A browser-based **first-person arena shooter** in an arena against **one CPU opponent**. Built with [Three.js](https://threejs.org/) — **no install or build step**; only a small local web server is required to run it.
+
+---
+
+## If someone shared this code with you — how to run / play
+
+You need a **computer** with **Python 3** *or* **Node.js**, and a **recent browser** (Chrome, Firefox, Safari, or Edge).
+
+### Step 1 — Get the project files
+
+**Option A — Git clone (if they gave you a GitHub link)**
+
+```bash
+git clone https://github.com/Mukundkumar07/Instant_3D_GAME.git
+cd Instant_3D_GAME
+```
+
+Use the branch they told you to use (for example `Instant_3D_GAME` or `main`):
+
+```bash
+git checkout Instant_3D_GAME
+```
+
+**Option B — ZIP download**
+
+1. On GitHub, open the repo → **Code** → **Download ZIP**.
+2. Unzip the folder.
+3. Open a terminal and `cd` into that folder (the one that contains `index.html`).
+
+### Step 2 — Start a local web server
+
+You **cannot** open `index.html` by double-clicking it — the game loads Three.js as a module, and browsers block that from `file://`. You must serve the folder over **http://**.
+
+**Using Python (often already installed on Mac/Linux):**
+
+```bash
+cd /path/to/the/folder/with/index.html
+python3 -m http.server 8080
+```
+
+**Using Node (if you have npm):**
+
+```bash
+cd /path/to/the/folder/with/index.html
+npx --yes serve -p 8080
+```
+
+Leave this terminal window **open** while you play.
+
+### Step 3 — Play in the browser
+
+1. Open: **http://127.0.0.1:8080/** (or the URL the `serve` command prints).
+2. Choose **Difficulty** (Easy / Medium / Hard).
+3. Click **Click to play** — the browser may ask to **hide the cursor**; accept for best experience.
+4. Use the controls below. Press **Esc** to unlock the mouse if needed.
+
+### Step 4 — Stop the server
+
+In the terminal where the server is running, press **Ctrl+C**.
+
+---
 
 ## Controls
 
@@ -8,72 +68,55 @@ A browser-based **first-person arena shooter** against one CPU opponent. Built w
 |--------|--------|
 | **↑** / **↓** | Move forward / backward |
 | **←** / **→** | Turn left / right |
-| **Space** | Shoot (release to fire again) |
-| **Click “Click to play”** | Start match (requests pointer lock; **Esc** unlocks) |
+| **Space** | Shoot (release Space to fire again) |
+| **Click “Click to play”** | Start the match (pointer lock; **Esc** unlocks cursor) |
 
-## Run locally
+**HUD:** Health bars and numbers, match timer, difficulty, weapon line, distance to CPU, and a small **compass** showing where the CPU is relative to the way you’re facing (**F** = forward). The crosshair flashes **cyan** when you hit the CPU and **orange/red** when they hit you.
 
-This project uses **ES modules** and an **import map** for Three.js. Browsers block module loading from `file://`, so serve the folder over HTTP.
+---
 
-```bash
-cd /path/to/Instant
-python3 -m http.server 8080
-```
+## Troubleshooting
 
-Open **http://127.0.0.1:8080/** in a modern browser (Chrome, Firefox, Safari, Edge).
+| Problem | What to try |
+|--------|-------------|
+| Blank page or errors in the console about **CORS** / modules | You opened the file directly. Use **Step 2** (local server), not double‑click `index.html`. |
+| **Port 8080 in use** | Pick another port, e.g. `python3 -m http.server 9000` then open **http://127.0.0.1:9000/** |
+| Game won’t start | Use a current browser; allow **pointer lock** when prompted, or try **Esc** and click **Click to play** again. |
+| `python3` not found (Windows) | Install Python from [python.org](https://www.python.org/) or use **Node** + `npx serve` instead. |
 
-Alternative (Node):
-
-```bash
-npx --yes serve -p 8080
-```
+---
 
 ## Project layout
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Page shell, HUD, import map |
-| `styles.css` | UI and crosshair |
-| `game.js` | Scene, player, AI, projectiles |
+| `index.html` | Page shell, HUD, import map for Three.js |
+| `styles.css` | UI, crosshair, compass |
+| `game.js` | 3D scene, player, CPU AI, shooting |
+| `scripts/push-current-branch.sh` | Helper to `git push` the current branch (optional, for developers) |
 
-## GitHub: create the repo and push (first time)
+---
 
-1. **Create an empty repository** on GitHub (no README/license if you already have files locally):  
-   [https://github.com/new](https://github.com/new)
+## Optional: play from GitHub Pages
 
-2. **From this folder**, run (replace `YOUR_USER` and `YOUR_REPO`):
+If the repo owner enabled **GitHub Pages** (Settings → Pages → branch + `/ (root)`), anyone can play **without** installing anything:
 
-   ```bash
-   git init
-   git branch -M main
-   git add .
-   git commit -m "Initial commit: Arena FPS Three.js game"
-   git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-   git push -u origin main
-   ```
+`https://Mukundkumar07.github.io/Instant_3D_GAME/`  
+(Exact URL depends on username, repo name, and which branch is deployed.)
 
-3. If you use **SSH**:
+---
 
-   ```bash
-   git remote add origin git@github.com:YOUR_USER/YOUR_REPO.git
-   git push -u origin main
-   ```
-
-### Using GitHub CLI (optional)
-
-If you have [GitHub CLI](https://cli.github.com/) installed and logged in (`gh auth login`):
+## For developers: clone and push (Git)
 
 ```bash
-gh repo create YOUR_REPO --public --source=. --remote=origin --push
+git clone https://github.com/Mukundkumar07/Instant_3D_GAME.git
+cd Instant_3D_GAME
+git checkout Instant_3D_GAME
+# … make changes …
+git add .
+git commit -m "Your message"
+git push -u origin Instant_3D_GAME
 ```
-
-## Optional: GitHub Pages
-
-After the repo is on GitHub:
-
-1. Repo **Settings → Pages**
-2. **Source**: Deploy from branch **main**, folder **/ (root)**
-3. Your game will be available at `https://YOUR_USER.github.io/YOUR_REPO/`
 
 ---
 
